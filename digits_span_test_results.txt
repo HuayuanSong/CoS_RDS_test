@@ -1,0 +1,7 @@
+Level: 1, Digits: 1, Direction: reverse, Answer: 1, Score: 1
+Level: 2, Digits: 1, Direction: same, Answer: 1, Score: 2
+Level: 2, Digits: 14, Direction: reverse, Answer: 41, Score: 3
+Level: 3, Digits: 44, Direction: same, Answer: 44, Score: 4
+Level: 3, Digits: 647, Direction: reverse, Answer: 746, Score: 5
+Level: 4, Digits: 679, Direction: reverse, Answer: 976, Score: 6
+Level: 4, Digits: 3834, Direction: reverse, Answer: 1231, Score: 6
