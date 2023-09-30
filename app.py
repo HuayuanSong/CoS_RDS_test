@@ -6,7 +6,7 @@ import random
 # 2 x Sequence of 2, 2 x sequence of 3 until they fail both
 #
 
-
+#comment to be erased
 # Define a function to generate a sequence of digits of a given length
 def generate_digits(length):
   # Initialize an empty string
