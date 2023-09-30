@@ -136,7 +136,7 @@ canvas.create_text(Width/2, Height/2.2, fill='darkblue',
 
 i = 0
 DIGITS = 1
-FAILURES = 0
+FAILURES = 1
 
 wdw.bind('<Return>', lambda event: startTest())
 userNumbers, generatedNumbers = [], []
