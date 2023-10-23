@@ -12,13 +12,16 @@ class DigitSpanTest:
         self.master = master
         self.master.title("Digit Span Test for Working Memory Evaluation")
 
+        # Get the screen width and height for the window size.
         self.width = self.master.winfo_screenwidth()
         self.height = self.master.winfo_screenheight()
         self.master.geometry(f"{self.width}x{self.height}")
 
+        # Create a canvas for drawing on the window.
         self.canvas = tk.Canvas(self.master, bg='#FDF5E6')
         self.canvas.pack(fill='both', expand=True)
 
+        # Start by asking for the user's ID.
         self.ask_for_id()
 
     def ask_for_id(self):
@@ -54,6 +57,7 @@ class DigitSpanTest:
                 "Click 'Start' or press 'Enter' if you are ready to start the test.")
         self.canvas.create_text(self.width/2, self.height/2.2, fill='darkblue', font='Arial 36', text=docs, justify='c')
 
+        # Create a 'Start' button to begin the test.
         self.start_btn = tk.Button(self.master, text="Start", font='Arial 24', fg='black', bg='#4682B4', activebackground='#36648B', activeforeground='white', command=self.start_test)
         self.canvas.create_window(self.width/2, self.height/1.4, window=self.start_btn)
 
@@ -61,7 +65,8 @@ class DigitSpanTest:
         self.sequence_length = 2
         self.sequence_attempts = 0
         self.correct_attempts = 0
-        self.score = 0
+        self.max_forward_length = 0
+        self.max_backward_length = 0
 
     def start_test(self):
         """
@@ -75,30 +80,41 @@ class DigitSpanTest:
         Run the test, showing sequences and collecting user input.
         """
         if self.sequence_attempts < 2:
-            # Generate a random sequence of digits with the specified length.
             while True:
-                self.sequence = [str(random.randint(0, 9)) for _ in range(self.sequence_length)]
-                if self.consecutive(self.sequence):
+                new_sequence = [str(random.randint(0, 9))]
+
+                # Generate a sequence ensuring no consecutive digits.
+                for _ in range(1, self.sequence_length):
+                    while True:
+                        next_digit = str(random.randint(0, 9))
+                        if next_digit != new_sequence[-1]:
+                            new_sequence.append(next_digit)
+                            break
+
+                # Ensure the new sequence is not the same as the last one.
+                if self.consecutive(new_sequence) and new_sequence != getattr(self, 'last_sequence', []):
                     break
-            # After a delay, show the sequence to the user.
+            self.sequence = new_sequence
+            self.last_sequence = new_sequence
             self.master.after(500, self.show_sequence)
         else:
             if self.correct_attempts >= 1:
-                # If the user got the sequence correct, increase length and restart.
+                if self.forward:
+                    self.max_forward_length = max(self.max_forward_length, self.sequence_length)
+                else:
+                    self.max_backward_length = max(self.max_backward_length, self.sequence_length)
                 self.correct_attempts = 0
                 self.sequence_attempts = 0
                 self.sequence_length += 1
                 self.run_test()
             else:
                 if self.forward:
-                    # If the user fails to repeat forwards, switch to backwards.
                     self.forward = False
                     self.sequence_length = 2
                     self.sequence_attempts = 0
                     self.correct_attempts = 0
                     self.show_backwards_notice()
                 else:
-                    # If the user fails both forwards and backwards, end the test.
                     self.end_test()
 
     def show_sequence(self):
@@ -114,7 +130,6 @@ class DigitSpanTest:
             num = self.sequence[self.sequence_index]
             self.canvas.create_text(self.width/2, self.height/2, fill='darkblue', font='Times 160', text=num, justify='c')
             self.sequence_index += 1
-            # After a delay, show the next digit in the sequence.
             self.master.after(1000, self.show_sequence)
         else:
             self.sequence_index = 0
@@ -147,7 +162,6 @@ class DigitSpanTest:
 
         if user_input == correct_sequence:
             self.correct_attempts += 1
-            self.score += 1
 
         self.sequence_attempts += 1
         self.run_test()
@@ -158,12 +172,13 @@ class DigitSpanTest:
         """
         self.canvas.delete('all')
         self.canvas.create_text(self.width/2, self.height/2.3, fill='darkblue', font='Arial 26', text="Thank you for your participation!", justify='c')
-        self.canvas.create_text(self.width/2, self.height/2, fill='darkblue', font='Arial 36', text=f"Your score: {self.score}", justify='c')
+        final_score = self.max_forward_length + self.max_backward_length
+        self.canvas.create_text(self.width/2, self.height/2, fill='darkblue', font='Arial 36', text=f"Your score: {final_score}", justify='c')
 
         # Save results to a file.
         with open(f"data/{self.user_id}_results.txt", 'w') as f:
             f.write(f"User ID: {self.user_id}\n")
-            f.write(f"Score: {self.score}\n")
+            f.write(f"Score: {final_score}\n")
 
     def consecutive(self, sequence):
         """
@@ -191,5 +206,5 @@ class DigitSpanTest:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = DigitSpanTest(root)
+    app = DigitSpanTest(master=root)
     root.mainloop()
