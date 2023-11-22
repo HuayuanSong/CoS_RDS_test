@@ -3,6 +3,7 @@ import pandas as pd
 from scipy import stats
 from statsmodels.stats.power import TTestIndPower
 from scipy.stats import norm
+import math
 import warnings
 
 # Suppress specific warnings
@@ -26,15 +27,17 @@ def calculate_sample_size_ttest(effect_size, alpha, power):
     sample_size = analysis.solve_power(effect_size=effect_size, alpha=alpha, power=power, ratio=1.0, alternative='two-sided')
     return round(sample_size)
 
-def calculate_sample_size_manual(alpha, beta, sigma, effect_size):
+def calculate_sample_size_manual(alpha, beta, effect_size):
     # Calculates critical values
     z_alpha_over_2 = norm.ppf(1 - alpha/2)
     z_beta = norm.ppf(1 - beta)
 
     # Calculates required sample size
-    sample_size = (2 * (z_alpha_over_2 + z_beta)**2 * sigma**2) / effect_size**2
+    #sample_size = (2 * (z_alpha_over_2 + z_beta)**2 * sigma**2) / effect_size**2
+    sample_size = (2 * (z_alpha_over_2 + z_beta)**2) / effect_size**2
+    # we can't have 0.1 particiåant so we want the next bigger number
 
-    return round(sample_size)
+    return math.ceil(sample_size), z_alpha_over_2, z_beta
 
 # CSV file into a DataFrame
 df_diff = pd.read_csv('df_diff.csv')
@@ -72,8 +75,10 @@ sample_size_builtin = calculate_sample_size_ttest(effect_size, alpha, power)
 print(f"Builtin ttest function: Required sample size per group: {sample_size_builtin}")
 
 # Calculate required sample size
-sample_size_manual = calculate_sample_size_manual(alpha, beta, pooled_sd, effect_size)
+sample_size_manual, z_alpha_over_2, z_beta  = calculate_sample_size_manual(alpha, beta, pooled_sd, effect_size)
 
 # Print the result
 print(f"Manual function: Required sample size per group: {sample_size_manual}")
+print(f"Zalpha: {z_alpha_over_2}")
+print(f"z_beta: {z_beta}")
 
